@@ -3,12 +3,17 @@
  * Everything on the card is driven from here.
  */
 
+import photo from '../assets/me.jpeg'
+
 export const profile = {
   name: 'BENYAHIA Boualem',
   role: 'Full-Stack Junior Developer | Data Science & Machine Learning Student',
   bio: 'I build applications, work with data, and turn ideas into practical solutions',
   location: 'Beb Ezzouare, Alger',
-  photoUrl: '../me.jpeg', // optional: 'https://.../me.jpg' — leave empty for initials
+  // Imported rather than a plain string: Vite fingerprints and bundles the file
+  // so it survives being moved to dist/. A bare '../me.jpeg' would be resolved
+  // by the browser against the page URL and 404.
+  photoUrl: photo,
 }
 
 export type Link = {
@@ -26,7 +31,7 @@ export const links: Link[] = [
     label: 'WhatsApp',
     handle: '+213 673 128 102',
     // wa.me needs the number in international format: country code, no +, no spaces
-    url: 'https://wa.me/21367312810',
+    url: 'https://wa.me/213673128102',
     icon: 'whatsapp',
   },
   {

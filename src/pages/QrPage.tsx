@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { profile } from '../data/profile'
+import { renderCardPng } from '../lib/renderCard'
 
 /**
  * Separate page — reached at <site>/#/qr — so the QR never appears on the card
- * a client sees. This is the one you screenshot, download or print for your own
+ * a client sees. This is the one you download or screenshot for your own
  * business card.
  */
 export function QrPage() {
   const [copied, setCopied] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const siteUrl = window.location.origin
 
@@ -22,20 +24,23 @@ export function QrPage() {
     }
   }
 
-  async function downloadPng() {
+  async function downloadCard() {
+    setBusy(true)
+    setError(null)
     try {
-      const dataUrl = await QRCode.toDataURL(siteUrl, {
-        width: 1024,
-        margin: 2,
-        errorCorrectionLevel: 'H',
-        color: { dark: '#08070E', light: '#FFFFFF' },
-      })
+      const dataUrl = await renderCardPng(siteUrl)
       const a = document.createElement('a')
       a.href = dataUrl
-      a.download = 'my-qr-code.png'
+      a.download = 'contact-card.png'
       a.click()
-    } catch {
-      setError('Could not generate the PNG — take a screenshot instead.')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Could not build the image: ${err.message}`
+          : 'Could not build the image — take a screenshot instead.',
+      )
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -57,11 +62,11 @@ export function QrPage() {
         <p className="qr-hint">Point any camera app at the square above</p>
 
         <div className="qr-actions">
-          <button className="btn btn-primary" onClick={downloadPng} type="button">
-            Download PNG
+          <button className="btn btn-primary" onClick={downloadCard} disabled={busy} type="button">
+            {busy ? 'Working…' : 'Download card'}
           </button>
           <button className="btn btn-ghost" onClick={copyLink} type="button">
-            {copied ? 'Link copied' : 'Copy link'}
+            {copied ? 'Copied' : 'Copy link'}
           </button>
         </div>
 
@@ -82,7 +87,7 @@ function QrImage({ value }: { value: string }) {
       width: 640,
       margin: 1,
       errorCorrectionLevel: 'M',
-      color: { dark: '#08070E', light: '#FFFFFF' },
+      color: { dark: '#0d1526', light: '#FFFFFF' },
     })
       .then((url) => {
         if (!cancelled) setSrc(url)

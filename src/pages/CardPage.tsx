@@ -1,6 +1,6 @@
 import { links, profile } from '../data/profile'
 import { LinkIcon } from '../components/LinkIcon'
-import { useVCard } from '../hooks/useVCard'
+import { useContactSave } from '../hooks/useVCard'
 
 const isExternal = (url: string) => url.startsWith('http')
 
@@ -12,7 +12,7 @@ const initials = profile.name
   .toUpperCase()
 
 export function CardPage() {
-  const downloadVCard = useVCard()
+  const saveContact = useContactSave()
 
   return (
     <main className="page">
@@ -60,8 +60,8 @@ export function CardPage() {
         </nav>
 
         <footer className="vcard-foot">
-          <button className="btn btn-primary" onClick={downloadVCard} type="button">
-            Save contact
+          <button className="btn btn-primary" onClick={saveContact} type="button">
+            Save to phone
           </button>
           <a className="ghost-link" href="#/qr">
             Show my QR code
