@@ -9,8 +9,10 @@ export function buildVCard(): string {
   const given = parts.length > 1 ? parts.slice(0, -1).join(' ') : ''
   const family = parts.length > 1 ? parts[parts.length - 1] : parts[0]
 
+  // Whitelist of contact-relevant links. Deliberately excludes linkedin: a saved
+  // contact only needs the ways to actually reach or identify the person.
   const fields = links
-    .filter((l) => ['email', 'phone', 'website', 'portfolio', 'linkedin'].includes(l.id))
+    .filter((l) => ['email', 'phone', 'website', 'portfolio'].includes(l.id))
     .map((l) => {
       if (l.id === 'email') return `EMAIL;TYPE=INTERNET:${l.url.replace('mailto:', '')}`
       if (l.id === 'phone') return `TEL;TYPE=CELL:${l.url.replace('tel:', '')}`
@@ -23,9 +25,6 @@ export function buildVCard(): string {
     `FN:${esc(profile.name)}`,
     // Some Android contact importers rely on the structured name; FN alone is not enough.
     `N:${esc(family)};${esc(given)};;;`,
-    `ORG:${esc(profile.role)}`,
-    `TITLE:${esc(profile.role)}`,
-    `NOTE:${esc(profile.bio)}`,
     `ADR;TYPE=WORK:;;${esc(profile.location)};;;;`,
     ...fields,
     'END:VCARD',

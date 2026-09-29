@@ -74,6 +74,66 @@ function pill(
 }
 
 /**
+ * Greedy word wrap. Long single-line fields (a long job title, a long name)
+ * would otherwise stretch the full card width and become unreadable, so they
+ * get broken into a small number of balanced lines instead.
+ */
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  str: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = str.trim().split(/\s+/)
+  const lines: string[] = []
+  let current = ''
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word
+    if (!current || ctx.measureText(candidate).width <= maxWidth) {
+      current = candidate
+    } else {
+      lines.push(current)
+      current = word
+      if (lines.length === maxLines) break
+    }
+  }
+
+  const exhausted = lines.length < maxLines
+  if (exhausted && current) lines.push(current)
+
+  // Anything that did not fit gets an ellipsis rather than a silent cut.
+  if (!exhausted && current && lines.length) {
+    const last = lines[lines.length - 1]
+    let out = last
+    while (out && ctx.measureText(`${out}…`).width > maxWidth) {
+      out = out.replace(/\s*\S+$/, '')
+    }
+    lines[lines.length - 1] = `${out}…`
+  }
+
+  return lines
+}
+
+/** Shrinks the font until the text fits one line, rather than clipping it. */
+function fitFont(
+  ctx: CanvasRenderingContext2D,
+  str: string,
+  maxWidth: number,
+  weight: number,
+  startSize: number,
+  minSize: number,
+): number {
+  let size = startSize
+  ctx.font = font(weight, size)
+  while (size > minSize && ctx.measureText(str).width > maxWidth) {
+    size -= 2
+    ctx.font = font(weight, size)
+  }
+  return size
+}
+
+/**
  * Draws the shareable card to an offscreen canvas and returns a PNG data URL.
  * Mirrors the on-screen .qr-card: name, role, framed QR, and enough contact
  * detail that the image still works if someone screenshots it.
@@ -126,22 +186,40 @@ export async function renderCardPng(siteUrl: string): Promise<string> {
   ctx.stroke()
 
   const cx = CARD_W / 2
+  const innerW = boxW - 120
 
   // ---- header ----
   pill(ctx, 'SCAN TO CONNECT', cx, 130, 58)
 
+  // Name stays on one line, shrinking rather than wrapping or clipping.
   ctx.fillStyle = '#0d1526'
-  ctx.font = font(700, 68)
-  text(ctx, profile.name, cx, 315)
+  fitFont(ctx, profile.name, innerW, 700, 68, 40)
+  text(ctx, profile.name, cx, 310)
 
+  // Role wraps into up to 3 balanced lines. Fixed line height keeps the block
+  // below predictable no matter how the text breaks.
+  const ROLE_SIZE = 40
+  const ROLE_LEADING = 50
   ctx.fillStyle = '#2563eb'
-  ctx.font = font(600, 36)
-  text(ctx, profile.role, cx, 375)
+  ctx.font = font(600, ROLE_SIZE)
+  const roleLines = wrapText(ctx, profile.role, innerW, 3)
+  const roleFirstBaseline = 372
+  roleLines.forEach((line, i) => text(ctx, line, cx, roleFirstBaseline + i * ROLE_LEADING))
+  const roleEnd = roleFirstBaseline + (roleLines.length - 1) * ROLE_LEADING
 
-  // ---- QR ----
-  const qrBox = 500
+  // ---- footer, anchored to the bottom of the card ----
+  const urlPillY = 1150
+  const hintBaseline = 1000
+  const emailBaseline = 1058
+  const phoneBaseline = 1106
+
+  // ---- QR, sized to whatever space the header and footer leave ----
+  const gap = 74
+  const qrTop = roleEnd + gap
+  const qrBottom = hintBaseline - gap
+  const qrBox = Math.max(300, Math.min(500, qrBottom - qrTop))
   const qrX = cx - qrBox / 2
-  const qrY = 430
+  const qrY = qrTop
 
   ctx.save()
   ctx.shadowColor = 'rgba(29,61,133,0.18)'
@@ -164,16 +242,16 @@ export async function renderCardPng(siteUrl: string): Promise<string> {
   // ---- footer ----
   ctx.fillStyle = '#5a6a86'
   ctx.font = font(500, 30)
-  text(ctx, 'Point your camera at the square', cx, 1000)
+  text(ctx, 'Point your camera at the square', cx, hintBaseline)
 
   const email = links.find((l) => l.id === 'email')?.handle
   const phone = links.find((l) => l.id === 'phone')?.handle
   ctx.fillStyle = '#3c4a63'
   ctx.font = font(600, 30)
-  if (email) text(ctx, email, cx, 1060)
-  if (phone) text(ctx, phone, cx, 1108)
+  if (email) text(ctx, email, cx, emailBaseline)
+  if (phone) text(ctx, phone, cx, phoneBaseline)
 
-  pill(ctx, siteUrl.replace(/^https?:\/\//, ''), cx, 1150, 62)
+  pill(ctx, siteUrl.replace(/^https?:\/\//, ''), cx, urlPillY, 62)
 
   return canvas.toDataURL('image/png')
 }
