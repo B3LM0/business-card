@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="gradient" x1="5" y1="5" x2="43" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#863BFF"/>
+      <stop offset="1" stop-color="#47BFFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Business card -->
+  <rect
+    x="4"
+    y="9"
+    width="40"
+    height="30"
+    rx="5"
+    fill="url(#gradient)"
+  />
+
+  <!-- Profile circle -->
+  <circle
+    cx="15"
+    cy="19"
+    r="4"
+    fill="white"
+  />
+
+  <!-- Profile body -->
+  <path
+    d="M9.5 29C10.4 25.7 12.3 24 15 24C17.7 24 19.6 25.7 20.5 29"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Contact lines -->
+  <path
+    d="M25 17H38"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M25 23H35"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M25 29H32"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <!-- NFC / tap waves -->
+  <path
+    d="M35 34C37.2 32.8 38.5 30.8 38.5 28.5"
+    stroke="white"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    opacity=".9"
+  />
+
+  <path
+    d="M39 35.5C41.4 33.5 42.5 30.8 42.5 27.5"
+    stroke="white"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    opacity=".7"
+  />
+</svg>
